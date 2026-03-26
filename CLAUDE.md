@@ -60,6 +60,7 @@ project contains only the runtime library source and tests.
 - `docs/runtime.md` — Runtime library specification: phases, routines, stack effects, syscall interface, linking model
 - `docs/research.txt` — Deep research on Pascal implementation, p-code VM design, memory model, and bootstrap strategy
 - `docs/agent-instructions.txt` — Original project setup instructions
+- `docs/agent-cas-wiki.md` — Wiki API for cross-agent coordination (CAS protocol, REST endpoints)
 
 ## Related Projects
 
@@ -73,15 +74,30 @@ project contains only the runtime library source and tests.
 
 `cor24-asm`, `pre-commit`
 
+## Multi-Agent Coordination
+
+This project participates in the P24 toolchain ecosystem. Use the shared wiki for
+cross-agent coordination:
+
+- Wiki API: `http://localhost:7402` (see `docs/agent-cas-wiki.md` for CAS protocol)
+- Project page: `PR24P` — update when status changes
+- Requests: `AgentToAgentRequests` — check for pending requests to/from pr24p
+
 ## Build & Test
 
 ```bash
-# Assemble .spc and run on VM
-cor24-run --run <file.s> --speed 0
-
-# With UART input
-cor24-run --run <file.s> -u 'input text\n' --speed 0 -n 5000000
+# Run .spc through pvmasm VM (test file must go first, main must be first .proc)
+content=$(cat tests/test_write_int.spc)
+cor24-run --run ~/github/sw-vibe-coding/pv24a/pvmasm.s -u "${content}\x04" --speed 0 -n 50000000
 ```
+
+## Critical pvmasm Constraints
+
+- `.proc` emits `enter`, `.end` emits `leave` — do NOT add explicit enter/leave
+- `main` must be the first `.proc` — VM starts at address 0
+- `input_buf` is 512 bytes — test .spc files must be compact (strip comments, use short names)
+- EOT (`\x04`) terminates UART input to the assembler
+- `.module`/`.export`/`.endmodule` directives are safely ignored by pvmasm
 
 ## VM Syscall Interface
 
