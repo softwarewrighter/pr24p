@@ -1,6 +1,6 @@
 number = 1
 slug = "001-phase0-write-int"
-status = "pending"
+status = "in-progress"
 description = "Write the hand-written .spc runtime stub for _p24p_write_int. This routine ta..."
 role = "production"
 context_files = []
