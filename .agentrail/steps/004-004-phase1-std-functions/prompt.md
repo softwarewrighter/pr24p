@@ -1,0 +1,1 @@
+Write Phase 1 standard functions in Pascal: abs, odd, ord, chr, succ, pred, sqr. These are the first dogfooding targets — compiled by p24c into .spc. Each exercises specific compiler features (functions, if/then/else, mod, char type, arithmetic). Create src/stdlib.pas.

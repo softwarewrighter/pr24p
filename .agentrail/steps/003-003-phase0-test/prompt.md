@@ -1,0 +1,1 @@
+Create test .spc programs that exercise all Phase 0 runtime stubs: test write_int with positive, negative, zero, and boundary values; test write_bool with true and false; test write_ln. Verify output by running through pasm + pv24a VM via cor24-run.

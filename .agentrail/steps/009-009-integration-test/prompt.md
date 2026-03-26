@@ -1,0 +1,1 @@
+Create end-to-end integration tests: Pascal programs that use runtime routines across all phases. Compile with p24c, assemble with pasm, run on cor24-run. Verify correct output for I/O, standard functions, bounds checking, heap allocation/deallocation, set operations, and string handling.

@@ -1,0 +1,1 @@
+Write Phase 1 read support in Pascal: _p24p_read_int (reads sign + digits from UART via sys 2), _p24p_read_char (reads single char), _p24p_read_ln (consumes through LF). Create src/read.pas. These complete Phase 1.

@@ -1,0 +1,1 @@
+Add _p24p_write_bool and _p24p_write_ln to src/runtime.spc. write_bool compares to 0 and prints TRUE or FALSE character by character via sys 1. write_ln pushes 10 (LF) and calls sys 1. These complete the Phase 0 hand-written stubs.

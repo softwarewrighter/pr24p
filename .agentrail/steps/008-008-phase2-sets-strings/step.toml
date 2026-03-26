@@ -1,0 +1,8 @@
+number = 8
+slug = "008-phase2-sets-strings"
+status = "pending"
+description = "Write set and string operations in Pascal: set_union, set_intersect, set_diff..."
+role = "production"
+context_files = []
+created_at = "2026-03-25T23:58:55"
+task_type = "pre-commit"

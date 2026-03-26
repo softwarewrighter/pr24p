@@ -1,0 +1,1 @@
+Write set and string operations in Pascal: set_union, set_intersect, set_diff, set_member (bit-vector operations), str_compare, str_copy, str_concat, and subrange_check. Create src/sets.pas and src/strings.pas.

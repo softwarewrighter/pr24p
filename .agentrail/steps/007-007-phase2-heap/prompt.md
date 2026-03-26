@@ -1,0 +1,1 @@
+Write heap management in Pascal: _p24p_heap_init (initialize free list), _p24p_new(size) (allocate block), _p24p_dispose(ptr) (free block), _p24p_leak_report (report unfreed allocations at exit). This is the flagship dogfooding target — exercises pointers, records, arrays, and the VM memory model. Create src/heap.pas.

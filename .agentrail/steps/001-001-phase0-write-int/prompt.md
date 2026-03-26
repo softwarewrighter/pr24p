@@ -1,0 +1,1 @@
+Write the hand-written .spc runtime stub for _p24p_write_int. This routine takes a signed integer from the eval stack, converts it to decimal digits (handling sign, div/mod loop), and outputs each character via sys 1 (PUTC). Follow the pasm syntax from pv24a. Create src/runtime.spc with this first routine. Reference docs/runtime.md for the specification.

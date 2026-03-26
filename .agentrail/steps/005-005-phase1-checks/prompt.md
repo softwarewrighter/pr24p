@@ -1,0 +1,1 @@
+Write _p24p_bounds_check and _p24p_nil_check in Pascal. bounds_check is called by compiler-generated array access code when index is out of range. nil_check is called before pointer dereference. Both should print a diagnostic message and halt. Create src/checks.pas.

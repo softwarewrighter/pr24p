@@ -1,0 +1,8 @@
+number = 1
+slug = "001-phase0-write-int"
+status = "pending"
+description = "Write the hand-written .spc runtime stub for _p24p_write_int. This routine ta..."
+role = "production"
+context_files = []
+created_at = "2026-03-25T23:58:36"
+task_type = "cor24-asm"
