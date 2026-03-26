@@ -1,14 +1,11 @@
 .proc main 0
-push 42
-call wi
+push 1
+call wb
 call wl
 push 0
-call wi
+call wb
 call wl
-push -5
-call wi
-call wl
-push 7
+push 42
 call wi
 call wl
 halt
@@ -44,6 +41,32 @@ sys 1
 jmp c
 d:
 drop
+ret 1
+.end
+.proc wb 0
+loada 0
+jz f
+push 84
+sys 1
+push 82
+sys 1
+push 85
+sys 1
+push 69
+sys 1
+jmp g
+f:
+push 70
+sys 1
+push 65
+sys 1
+push 76
+sys 1
+push 83
+sys 1
+push 69
+sys 1
+g:
 ret 1
 .end
 .proc wl 0
