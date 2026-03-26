@@ -1,3 +1,8 @@
+.module runtime
+.export _p24p_write_int
+.export _p24p_write_bool
+.export _p24p_write_ln
+
 ; pr24p — Pascal Runtime Library
 ; Phase 0: Hand-written .spc stubs for p-code VM syscall wrappers
 
@@ -83,3 +88,5 @@ wb_done:
     sys 1
     ret 0
 .end
+
+.endmodule
