@@ -11,6 +11,18 @@ call wl
 push 7
 call wi
 call wl
+push 1
+call wi
+call wl
+push -1
+call wi
+call wl
+push 100
+call wi
+call wl
+push 999
+call wi
+call wl
 halt
 .end
 .proc wi 1
