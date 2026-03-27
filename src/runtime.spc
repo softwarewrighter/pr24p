@@ -12,6 +12,9 @@
 .export _p24p_sqr
 .export _p24p_bounds_check
 .export _p24p_nil_check
+.export _p24p_read_int
+.export _p24p_read_char
+.export _p24p_read_ln
 
 ; pr24p — Pascal Runtime Library
 ; Phase 0: Hand-written .spc stubs for p-code VM syscall wrappers
@@ -247,6 +250,112 @@ bc_fail:
 nc_ok:
     loada 0              ; return ptr for caller to use
     ret 1
+.end
+
+; Phase 1: Read support
+; Hand-written .spc until p24c supports function compilation.
+; Pascal source: src/read.pas
+
+; _p24p_read_char ( -- c )
+; Read single character from UART via sys 2 (GETC).
+.proc _p24p_read_char 0
+    sys 2                ; GETC -> push char
+    ret 0
+.end
+
+; _p24p_read_int ( -- n )
+; Read signed integer from UART. Skips leading whitespace,
+; handles optional +/- sign, accumulates decimal digits.
+; local0 = n (accumulator), local1 = neg flag, local2 = current char
+.proc _p24p_read_int 3
+    push 0
+    storel 0             ; n = 0
+    push 0
+    storel 1             ; neg = 0
+    ; read first char, skip whitespace
+    sys 2
+    storel 2             ; c = getc
+ri_ws:
+    loadl 2
+    push 32              ; space
+    eq
+    jnz ri_skip
+    loadl 2
+    push 9               ; tab
+    eq
+    jnz ri_skip
+    jmp ri_sign
+ri_skip:
+    sys 2
+    storel 2             ; c = getc
+    jmp ri_ws
+ri_sign:
+    ; check for minus
+    loadl 2
+    push 45              ; '-'
+    ne
+    jnz ri_plus
+    push 1
+    storel 1             ; neg = 1
+    sys 2
+    storel 2             ; c = getc
+    jmp ri_digits
+ri_plus:
+    ; check for plus
+    loadl 2
+    push 43              ; '+'
+    ne
+    jnz ri_digits
+    sys 2
+    storel 2             ; c = getc
+ri_digits:
+    ; check if c is a digit (48..57)
+    loadl 2
+    push 48
+    lt
+    jnz ri_negate        ; c < '0', stop
+    loadl 2
+    push 57
+    gt
+    jnz ri_negate        ; c > '9', stop
+    ; n = n * 10 + (c - 48)
+    loadl 0
+    push 10
+    mul
+    loadl 2
+    push 48
+    sub
+    add
+    storel 0             ; n = n * 10 + digit
+    sys 2
+    storel 2             ; c = getc
+    jmp ri_digits
+ri_negate:
+    loadl 1
+    jz ri_done
+    loadl 0
+    neg
+    storel 0             ; n = -n
+ri_done:
+    loadl 0              ; push result
+    ret 0
+.end
+
+; _p24p_read_ln ( -- )
+; Consume characters from UART until LF (10) is read.
+.proc _p24p_read_ln 1
+    sys 2
+    storel 0             ; c = getc
+rl_loop:
+    loadl 0
+    push 10              ; LF
+    eq
+    jnz rl_done
+    sys 2
+    storel 0             ; c = getc
+    jmp rl_loop
+rl_done:
+    ret 0
 .end
 
 .endmodule
