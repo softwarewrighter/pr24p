@@ -15,6 +15,10 @@
 .export _p24p_read_int
 .export _p24p_read_char
 .export _p24p_read_ln
+.export _p24p_heap_init
+.export _p24p_new
+.export _p24p_dispose
+.export _p24p_leak_report
 
 ; pr24p — Pascal Runtime Library
 ; Phase 0: Hand-written .spc stubs for p-code VM syscall wrappers
@@ -355,6 +359,213 @@ rl_loop:
     storel 0             ; c = getc
     jmp rl_loop
 rl_done:
+    ret 0
+.end
+
+; Phase 2: Heap management
+; Hand-written .spc until p24c supports pointer/record compilation.
+; Pascal source: src/heap.pas
+
+; Globals for heap tracking
+; _h_ac = allocation count, _h_fc = free count
+; _h_pt = pointer tracking table (16 slots)
+.global _h_ac 1
+.global _h_fc 1
+.global _h_pt 16
+
+; _p24p_heap_init ( -- )
+; Initialize heap tracking. Zero counters and pointer table.
+.proc _p24p_heap_init 1
+    push 0
+    storeg _h_ac            ; alloc_count = 0
+    push 0
+    storeg _h_fc            ; free_count = 0
+    ; zero tracking table
+    push 0
+    storel 0                ; i = 0
+hi_loop:
+    loadl 0
+    push 16
+    ge
+    jnz hi_done             ; if i >= 16, done
+    ; compute address of _h_pt[i] and store 0
+    push 0
+    addrg _h_pt             ; base address of table
+    loadl 0                 ; i
+    push 3
+    mul                     ; i * 3 (byte offset)
+    add                     ; base + i*3
+    store                   ; mem[base + i*3] = 0
+    loadl 0
+    push 1
+    add
+    storel 0                ; i++
+    jmp hi_loop
+hi_done:
+    ret 0
+.end
+
+; _p24p_new ( size -- addr )
+; Allocate size words via sys 4 (ALLOC). Track pointer.
+.proc _p24p_new 2
+    loada 0                 ; load size
+    sys 4                   ; ALLOC -> addr on stack
+    storel 0                ; local0 = addr
+    ; alloc_count++
+    loadg _h_ac
+    push 1
+    add
+    storeg _h_ac
+    ; find empty slot in tracking table
+    push 0
+    storel 1                ; i = 0
+nw_loop:
+    loadl 1
+    push 16
+    ge
+    jnz nw_done             ; table full, skip tracking
+    ; load _h_pt[i]
+    addrg _h_pt
+    loadl 1
+    push 3
+    mul
+    add
+    load                    ; _h_pt[i]
+    jnz nw_next             ; slot occupied, try next
+    ; store addr in empty slot
+    loadl 0                 ; addr
+    addrg _h_pt
+    loadl 1
+    push 3
+    mul
+    add
+    store                   ; _h_pt[i] = addr
+    jmp nw_done
+nw_next:
+    loadl 1
+    push 1
+    add
+    storel 1                ; i++
+    jmp nw_loop
+nw_done:
+    loadl 0                 ; push addr as return value
+    ret 1
+.end
+
+; _p24p_dispose ( ptr -- )
+; Free heap memory via sys 5 (FREE). Remove from tracking.
+.proc _p24p_dispose 1
+    loada 0                 ; load ptr
+    sys 5                   ; FREE
+    ; free_count++
+    loadg _h_fc
+    push 1
+    add
+    storeg _h_fc
+    ; find and remove ptr from tracking table
+    push 0
+    storel 0                ; i = 0
+dp_loop:
+    loadl 0
+    push 16
+    ge
+    jnz dp_done             ; not found, done
+    ; load _h_pt[i]
+    addrg _h_pt
+    loadl 0
+    push 3
+    mul
+    add
+    load                    ; _h_pt[i]
+    loada 0                 ; ptr
+    ne
+    jnz dp_next             ; not this one
+    ; clear the slot
+    push 0
+    addrg _h_pt
+    loadl 0
+    push 3
+    mul
+    add
+    store                   ; _h_pt[i] = 0
+    jmp dp_done
+dp_next:
+    loadl 0
+    push 1
+    add
+    storel 0                ; i++
+    jmp dp_loop
+dp_done:
+    ret 1
+.end
+
+; _p24p_leak_report ( -- )
+; Report unfreed allocations. Prints "LEAK:N" or "OK:0".
+.proc _p24p_leak_report 1
+    loadg _h_ac
+    loadg _h_fc
+    sub
+    storel 0                ; leaks = alloc_count - free_count
+    loadl 0
+    push 0
+    gt
+    jz lr_ok
+    ; print "LEAK:"
+    push 76                 ; 'L'
+    sys 1
+    push 69                 ; 'E'
+    sys 1
+    push 65                 ; 'A'
+    sys 1
+    push 75                 ; 'K'
+    sys 1
+    push 58                 ; ':'
+    sys 1
+    loadl 0                 ; push leak count
+    jmp lr_print
+lr_ok:
+    ; print "OK:"
+    push 79                 ; 'O'
+    sys 1
+    push 75                 ; 'K'
+    sys 1
+    push 58                 ; ':'
+    sys 1
+    push 0                  ; push 0
+lr_print:
+    ; print the number using write_int logic inline
+    ; (can't call _p24p_write_int from here since it uses ret 1)
+    dup
+    push 0
+    lt
+    jz lr_pos
+    push 45
+    sys 1
+    neg
+lr_pos:
+    storel 0
+    push 0                  ; sentinel
+lr_ext:
+    loadl 0
+    push 10
+    mod
+    push 48
+    add                     ; digit char
+    loadl 0
+    push 10
+    div
+    storel 0
+    loadl 0
+    jnz lr_ext
+lr_prt:
+    dup
+    jz lr_end
+    sys 1
+    jmp lr_prt
+lr_end:
+    drop                    ; discard sentinel
+    push 10                 ; LF
+    sys 1
     ret 0
 .end
 
