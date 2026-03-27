@@ -1,6 +1,6 @@
 number = 5
 slug = "005-phase1-checks"
-status = "pending"
+status = "in-progress"
 description = "Write _p24p_bounds_check and _p24p_nil_check in Pascal. bounds_check is calle..."
 role = "production"
 context_files = []

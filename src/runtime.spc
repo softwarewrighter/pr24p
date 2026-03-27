@@ -10,6 +10,8 @@
 .export _p24p_succ
 .export _p24p_pred
 .export _p24p_sqr
+.export _p24p_bounds_check
+.export _p24p_nil_check
 
 ; pr24p — Pascal Runtime Library
 ; Phase 0: Hand-written .spc stubs for p-code VM syscall wrappers
@@ -185,6 +187,65 @@ abs_done:
     loada 0
     dup
     mul
+    ret 1
+.end
+
+; Phase 1: Runtime checks
+; Hand-written .spc until p24c supports procedure compilation.
+; Pascal source: src/checks.pas
+
+; _p24p_bounds_check ( index low high -- )
+; Array bounds violation handler. Called by compiler-generated
+; array access code. If index < low or index > high, prints
+; "BOUNDS" to UART and halts.
+.proc _p24p_bounds_check 0
+    loada 2              ; load index (first pushed)
+    loada 1              ; load low (second pushed)
+    lt                   ; index < low?
+    jnz bc_fail
+    loada 2              ; load index
+    loada 0              ; load high (last pushed)
+    gt                   ; index > high?
+    jnz bc_fail
+    ret 3                ; in range, return normally
+bc_fail:
+    ; print "BOUNDS\n"
+    push 66              ; 'B'
+    sys 1
+    push 79              ; 'O'
+    sys 1
+    push 85              ; 'U'
+    sys 1
+    push 78              ; 'N'
+    sys 1
+    push 68              ; 'D'
+    sys 1
+    push 83              ; 'S'
+    sys 1
+    push 10              ; LF
+    sys 1
+    sys 0                ; HALT
+.end
+
+; _p24p_nil_check ( ptr -- )
+; Nil pointer dereference handler. Called before pointer
+; dereference. If ptr = 0, prints "NIL" and halts.
+; Otherwise returns with ptr still on stack for use.
+.proc _p24p_nil_check 0
+    loada 0              ; load ptr
+    jnz nc_ok            ; non-nil, safe
+    ; print "NIL\n"
+    push 78              ; 'N'
+    sys 1
+    push 73              ; 'I'
+    sys 1
+    push 76              ; 'L'
+    sys 1
+    push 10              ; LF
+    sys 1
+    sys 0                ; HALT
+nc_ok:
+    loada 0              ; return ptr for caller to use
     ret 1
 .end
 
