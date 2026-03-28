@@ -127,6 +127,16 @@ These use `sys 2` (GETC) internally. The integer reader handles optional sign an
 | `_p24p_eoln` | ( -- flag ) | Returns 1 if at LF or EOT, uses lookahead buffer |
 | `_p24p_subrange_check` | ( val lo hi -- ) | Prints "RANGE" and halts on violation |
 
+### Hardware Unit (Implemented)
+
+| Routine | Stack Effect | Description |
+|---------|-------------|-------------|
+| `_p24p_set_led` | ( n -- ) | Write LED state via sys 3 (LED) |
+| `_p24p_read_switch` | ( -- n ) | Read switch state (stub returning 0, no VM syscall yet) |
+| `_p24p_halt` | ( -- ) | Stop execution via sys 0 (HALT) |
+
+These support `uses Hardware` in Pascal programs. `set_led` wraps the LED syscall directly. `read_switch` is a placeholder until the VM adds a switch-read syscall.
+
 ### Phase 2 — Sets & Strings (Planned)
 
 | Routine | Description | Compiler Features Exercised |

@@ -20,7 +20,7 @@ pr24p runtime (.spc)  ───────────────────�
 
 The runtime is linked with user programs by pl24r (text-level .spc linker), assembled into .p24 bytecode by pa24r, and executed on the pv24a p-code VM running on the COR24 architecture (emulated via cor24-run or on real COR24-TD hardware).
 
-## Routines (29 exported)
+## Routines (32 exported)
 
 | Category | Routines |
 |----------|----------|
@@ -31,6 +31,7 @@ The runtime is linked with user programs by pl24r (text-level .spc linker), asse
 | **Input** | `read_int`, `read_char`, `read_ln` |
 | **I/O State** | `eof`, `eoln` |
 | **Heap** | `heap_init`, `new`, `dispose`, `leak_report` |
+| **Hardware** | `set_led`, `read_switch`, `halt` |
 
 All routines use the `_p24p_` prefix (e.g., `_p24p_write_int`).
 
@@ -44,20 +45,20 @@ content=$(cat tests/test_write_int.spc)
 cor24-run --run ~/github/sw-vibe-coding/pv24a/pvmasm.s -u "${content}\x04" --speed 0 -n 50000000
 ```
 
-7 test suites: `test_write_int`, `test_write_bool_ln`, `test_stdlib`, `test_write_str`, `test_checks`, `test_heap`, `test_write_fmt`.
+11 test suites: `test_write_int`, `test_write_bool_ln`, `test_stdlib`, `test_write_str`, `test_checks`, `test_heap`, `test_write_fmt`, `test_hardware`, `test_integ_io`, `test_integ_heap`, `test_integ_all`.
 
 ## Project Structure
 
 ```
 src/
-  runtime.spc      # Main runtime — all 29 routines in p-code assembly
+  runtime.spc      # Main runtime — all 32 routines in p-code assembly
   heap.pas         # Pascal design for heap management
   checks.pas       # Pascal design for bounds/nil checks
   read.pas         # Pascal design for UART input
   write_fmt.pas    # Pascal design for formatted output
   io_state.pas     # Pascal design for eof/eoln
 tests/
-  test_*.spc       # 7 test suites
+  test_*.spc       # 11 test suites (unit + integration + hardware)
 docs/
   runtime.md       # Runtime library specification
   research.txt     # P-code VM design notes
