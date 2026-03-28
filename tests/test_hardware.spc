@@ -17,8 +17,11 @@ sys 1
 call wl
 halt
 .end
+; set_led with active-low inversion
 .proc sl 0
+push 1
 loada 0
+sub
 sys 3
 ret 1
 .end

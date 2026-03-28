@@ -865,8 +865,12 @@ sr_fail:
 
 ; _p24p_set_led ( n -- )
 ; Write LED state via sys 3 (LED).
+; COR24 LED is active-low: hardware 0 = ON, 1 = OFF.
+; Invert so SetLED(1) turns LED on: write (1 - arg) & 1.
 .proc _p24p_set_led 0
+    push 1
     loada 0              ; load LED state
+    sub                  ; 1 - arg (inverts 0↔1)
     sys 3                ; LED
     ret 1
 .end
