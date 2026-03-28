@@ -1,6 +1,6 @@
 number = 9
 slug = "009-integration-test"
-status = "pending"
+status = "in-progress"
 description = "Create end-to-end integration tests: Pascal programs that use runtime routine..."
 role = "production"
 context_files = []
