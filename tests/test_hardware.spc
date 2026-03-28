@@ -1,14 +1,12 @@
 .proc main 0
-; test set_led: set LED to 1
-push 1
-call sl
+; test led_on
+call lon
 ; test read_switch: read and print
 call rs
 call wi
 call wl
-; test set_led: set LED to 0
-push 0
-call sl
+; test led_off
+call lof
 ; print OK
 push 79
 sys 1
@@ -17,13 +15,17 @@ sys 1
 call wl
 halt
 .end
-; set_led with active-low inversion
-.proc sl 0
-push 1
-loada 0
-sub
+; led_on: active-low, write 0
+.proc lon 0
+push 0
 sys 3
-ret 1
+ret 0
+.end
+; led_off: active-low, write 1
+.proc lof 0
+push 1
+sys 3
+ret 0
 .end
 .proc rs 0
 push 0

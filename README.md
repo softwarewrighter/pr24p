@@ -31,7 +31,7 @@ The runtime is linked with user programs by pl24r (text-level .spc linker), asse
 | **Input** | `read_int`, `read_char`, `read_ln` |
 | **I/O State** | `eof`, `eoln` |
 | **Heap** | `heap_init`, `new`, `dispose`, `leak_report` |
-| **Hardware** | `set_led`, `read_switch`, `halt` |
+| **Hardware** | `led_on`, `led_off`, `read_switch`, `halt` |
 
 All routines use the `_p24p_` prefix (e.g., `_p24p_write_int`).
 

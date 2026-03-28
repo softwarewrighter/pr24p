@@ -27,7 +27,8 @@
 .export _p24p_eof
 .export _p24p_eoln
 .export _p24p_subrange_check
-.export _p24p_set_led
+.export _p24p_led_on
+.export _p24p_led_off
 .export _p24p_read_switch
 .export _p24p_halt
 
@@ -863,16 +864,20 @@ sr_fail:
 ; Hardware unit routines
 ; These support `uses Hardware` in Pascal programs.
 
-; _p24p_set_led ( n -- )
-; Write LED state via sys 3 (LED).
-; COR24 LED is active-low: hardware 0 = ON, 1 = OFF.
-; Invert so SetLED(1) turns LED on: write (1 - arg) & 1.
-.proc _p24p_set_led 0
-    push 1
-    loada 0              ; load LED state
-    sub                  ; 1 - arg (inverts 0↔1)
+; _p24p_led_on ( -- )
+; Turn LED on. COR24 LED is active-low: write 0 to turn on.
+.proc _p24p_led_on 0
+    push 0               ; active-low: 0 = ON
     sys 3                ; LED
-    ret 1
+    ret 0
+.end
+
+; _p24p_led_off ( -- )
+; Turn LED off. COR24 LED is active-low: write 1 to turn off.
+.proc _p24p_led_off 0
+    push 1               ; active-low: 1 = OFF
+    sys 3                ; LED
+    ret 0
 .end
 
 ; _p24p_read_switch ( -- n )
