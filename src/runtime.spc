@@ -19,6 +19,14 @@
 .export _p24p_new
 .export _p24p_dispose
 .export _p24p_leak_report
+.export _p24p_write_char
+.export _p24p_write_int_w
+.export _p24p_write_char_w
+.export _p24p_write_bool_w
+.export _p24p_write_str_w
+.export _p24p_eof
+.export _p24p_eoln
+.export _p24p_subrange_check
 
 ; pr24p — Pascal Runtime Library
 ; Phase 0: Hand-written .spc stubs for p-code VM syscall wrappers
@@ -567,6 +575,286 @@ lr_end:
     push 10                 ; LF
     sys 1
     ret 0
+.end
+
+; Phase 2: Write formatting
+; Hand-written .spc until p24c supports procedure compilation.
+; Pascal source: src/write_fmt.pas
+
+; _p24p_write_char ( c -- )
+; Write single character to UART via sys 1 (PUTC).
+.proc _p24p_write_char 0
+    loada 0              ; load c
+    sys 1                ; PUTC
+    ret 1
+.end
+
+; _p24p_write_int_w ( n width -- )
+; Write integer n right-justified in field of given width.
+; Calling convention: push n, push width, call. loada 0=width, loada 1=n.
+; Counts digits+sign, pads with spaces, then prints number.
+.proc _p24p_write_int_w 3
+    ; local0 = tmp, local1 = digits, local2 = neg
+    push 0
+    storel 2                ; neg = 0
+    loada 1                 ; load n
+    dup
+    push 0
+    lt
+    jz iw_pos
+    push 1
+    storel 2                ; neg = 1
+    neg                     ; tmp = -n
+    jmp iw_count
+iw_pos:
+    ; tmp = n (already on stack)
+iw_count:
+    storel 0                ; local0 = abs(n)
+    push 0
+    storel 1                ; digits = 0
+iw_dloop:
+    loadl 1
+    push 1
+    add
+    storel 1                ; digits++
+    loadl 0
+    push 10
+    div
+    storel 0                ; tmp = tmp / 10
+    loadl 0
+    jnz iw_dloop            ; while tmp != 0
+    ; digits += neg
+    loadl 1
+    loadl 2
+    add
+    storel 1                ; digits = digits + neg
+    ; pad with spaces: while digits < width
+iw_pad:
+    loadl 1
+    loada 0                 ; width
+    ge
+    jnz iw_num              ; if digits >= width, done padding
+    push 32                 ; space
+    sys 1
+    loadl 1
+    push 1
+    add
+    storel 1                ; digits++ (count padding)
+    jmp iw_pad
+iw_num:
+    ; now print the number using write_int logic inline
+    loada 1                 ; load n
+    dup
+    push 0
+    lt
+    jz iw_npos
+    push 45                 ; '-'
+    sys 1
+    neg
+iw_npos:
+    storel 0                ; local0 = abs(n)
+    push 0                  ; sentinel
+iw_ext:
+    loadl 0
+    push 10
+    mod
+    push 48
+    add                     ; digit char
+    loadl 0
+    push 10
+    div
+    storel 0
+    loadl 0
+    jnz iw_ext
+iw_prt:
+    dup
+    jz iw_end
+    sys 1
+    jmp iw_prt
+iw_end:
+    drop                    ; discard sentinel
+    ret 2
+.end
+
+; _p24p_write_char_w ( c width -- )
+; Write character c right-justified in field of given width.
+; Calling convention: push c, push width, call. loada 0=width, loada 1=c.
+.proc _p24p_write_char_w 1
+    loada 0                 ; load width
+    storel 0                ; local0 = remaining
+cw_pad:
+    loadl 0
+    push 1
+    le
+    jnz cw_emit             ; if remaining <= 1, done padding
+    push 32                 ; space
+    sys 1
+    loadl 0
+    push 1
+    sub
+    storel 0                ; remaining--
+    jmp cw_pad
+cw_emit:
+    loada 1                 ; load c
+    sys 1                   ; PUTC
+    ret 2
+.end
+
+; _p24p_write_bool_w ( b width -- )
+; Write boolean right-justified in field of given width.
+; TRUE=4 chars, FALSE=5 chars.
+; Calling convention: push b, push width, call. loada 0=width, loada 1=b.
+.proc _p24p_write_bool_w 2
+    ; local0 = len, local1 = remaining width
+    loada 1                 ; load b
+    jz bw_false_len
+    push 4
+    jmp bw_have_len
+bw_false_len:
+    push 5
+bw_have_len:
+    storel 0                ; len
+    loada 0                 ; width
+    storel 1
+bw_pad:
+    loadl 0
+    loadl 1
+    ge
+    jnz bw_emit             ; if len >= width, done
+    push 32
+    sys 1
+    loadl 1
+    push 1
+    sub
+    storel 1                ; width--
+    jmp bw_pad
+bw_emit:
+    loada 1                 ; load b
+    call _p24p_write_bool
+    ret 2
+.end
+
+; _p24p_write_str_w ( addr width -- )
+; Write string right-justified in field of given width.
+; First counts string length, then pads and prints.
+; Calling convention: push addr, push width, call. loada 0=width, loada 1=addr.
+.proc _p24p_write_str_w 2
+    ; local0 = len, local1 = ptr
+    push 0
+    storel 0                ; len = 0
+    loada 1                 ; load addr
+    storel 1                ; ptr = addr
+sw_count:
+    loadl 1
+    loadb                   ; byte at ptr
+    jz sw_pad_start         ; null terminator -> done counting
+    loadl 0
+    push 1
+    add
+    storel 0                ; len++
+    loadl 1
+    push 1
+    add
+    storel 1                ; ptr++
+    jmp sw_count
+sw_pad_start:
+    loadl 0
+    loada 0                 ; width
+    ge
+    jnz sw_emit             ; if len >= width, no padding
+    push 32
+    sys 1
+    loada 0
+    push 1
+    sub
+    storea 0                ; width-- (modify arg for loop)
+    jmp sw_pad_start
+sw_emit:
+    loada 1                 ; addr
+    call _p24p_write_str
+    ret 2
+.end
+
+; Phase 2: I/O state functions
+; Hand-written .spc until p24c supports function compilation.
+; Pascal source: src/io_state.pas
+
+; Globals for I/O lookahead buffer
+; _io_la = lookahead char (-1 = empty)
+; _io_ef = eof flag (0 = not eof, 1 = eof)
+.global _io_la 1
+.global _io_ef 1
+
+; _p24p_eof ( -- flag )
+; Returns 1 if at end of input (EOT byte 0x04), 0 otherwise.
+; Uses a one-character lookahead buffer.
+.proc _p24p_eof 0
+    loadg _io_la
+    push 0
+    lt
+    jz ef_have              ; if lookahead >= 0, we have a buffered char
+    ; buffer empty, read a char
+    sys 2                   ; GETC
+    storeg _io_la           ; store in lookahead
+ef_have:
+    loadg _io_la
+    push 4                  ; EOT
+    eq                      ; lookahead == EOT?
+    ret 0
+.end
+
+; _p24p_eoln ( -- flag )
+; Returns 1 if at end of line (LF byte 10) or at EOF.
+; Uses same lookahead buffer as eof.
+.proc _p24p_eoln 0
+    loadg _io_la
+    push 0
+    lt
+    jz el_have
+    sys 2                   ; GETC
+    storeg _io_la
+el_have:
+    loadg _io_la
+    push 10                 ; LF
+    eq
+    jnz el_true
+    loadg _io_la
+    push 4                  ; EOT
+    eq
+    jnz el_true
+    push 0                  ; not at eoln
+    ret 0
+el_true:
+    push 1
+    ret 0
+.end
+
+; _p24p_subrange_check ( value low high -- )
+; Subrange violation handler. Like bounds_check but prints "RANGE".
+.proc _p24p_subrange_check 0
+    loada 2              ; load value (first pushed)
+    loada 1              ; load low
+    lt                   ; value < low?
+    jnz sr_fail
+    loada 2              ; load value
+    loada 0              ; load high
+    gt                   ; value > high?
+    jnz sr_fail
+    ret 3                ; in range, return normally
+sr_fail:
+    push 82              ; 'R'
+    sys 1
+    push 65              ; 'A'
+    sys 1
+    push 78              ; 'N'
+    sys 1
+    push 71              ; 'G'
+    sys 1
+    push 69              ; 'E'
+    sys 1
+    push 10              ; LF
+    sys 1
+    sys 0                ; HALT
 .end
 
 .endmodule
