@@ -27,6 +27,9 @@
 .export _p24p_eof
 .export _p24p_eoln
 .export _p24p_subrange_check
+.export _p24p_set_led
+.export _p24p_read_switch
+.export _p24p_halt
 
 ; pr24p — Pascal Runtime Library
 ; Phase 0: Hand-written .spc stubs for p-code VM syscall wrappers
@@ -854,6 +857,30 @@ sr_fail:
     sys 1
     push 10              ; LF
     sys 1
+    sys 0                ; HALT
+.end
+
+; Hardware unit routines
+; These support `uses Hardware` in Pascal programs.
+
+; _p24p_set_led ( n -- )
+; Write LED state via sys 3 (LED).
+.proc _p24p_set_led 0
+    loada 0              ; load LED state
+    sys 3                ; LED
+    ret 1
+.end
+
+; _p24p_read_switch ( -- n )
+; Read switch state. Stub returning 0 (no VM syscall yet).
+.proc _p24p_read_switch 0
+    push 0               ; stub: always 0
+    ret 0
+.end
+
+; _p24p_halt ( -- )
+; Stop execution via sys 0 (HALT).
+.proc _p24p_halt 0
     sys 0                ; HALT
 .end
 

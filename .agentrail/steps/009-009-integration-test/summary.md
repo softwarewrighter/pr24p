@@ -1,0 +1,1 @@
+Created 3 cross-phase integration tests: test_integ_io (read+stdlib+formatting+subrange), test_integ_heap (heap+nil/bounds check+leak report), test_integ_all (all phases: read, stdlib, heap, formatting, eof). All 10 test suites pass on cor24-run VM. Note: p24c compiler not buildable, so tests are hand-written .spc simulating compiled output.
