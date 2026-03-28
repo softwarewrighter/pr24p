@@ -1,0 +1,11 @@
+{
+  "task_type": "cor24-asm",
+  "state": {
+    "number": 1,
+    "step": "001-phase0-write-int"
+  },
+  "action": "read runtime.md spec, explored pv24a pasm syntax and VM opcodes (enter/leave/call/ret semantics), wrote .spc using stack-machine idiom, created test program, verified assembly syntax matches hello.spc patterns",
+  "result": "success",
+  "reward": 1,
+  "timestamp": "2026-03-26T01:16:37"
+}

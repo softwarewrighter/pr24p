@@ -1,0 +1,11 @@
+{
+  "task_type": "pre-commit",
+  "state": {
+    "number": 7,
+    "step": "007-phase2-heap"
+  },
+  "action": "read runtime.spc and docs, explored pvmasm .global/loadg/storeg instructions, wrote src/heap.pas, added .spc stubs with globals to runtime.spc, created compact test, verified on cor24-run VM, ran regression on all existing tests",
+  "result": "success",
+  "reward": 1,
+  "timestamp": "2026-03-26T20:15:05"
+}

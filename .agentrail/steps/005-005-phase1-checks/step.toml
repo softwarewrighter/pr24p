@@ -1,8 +1,9 @@
 number = 5
 slug = "005-phase1-checks"
-status = "in-progress"
+status = "completed"
 description = "Write _p24p_bounds_check and _p24p_nil_check in Pascal. bounds_check is calle..."
 role = "production"
 context_files = []
 created_at = "2026-03-25T23:58:55"
+completed_at = "2026-03-26T19:30:12"
 task_type = "pre-commit"

@@ -1,0 +1,1 @@
+Implemented Phase 2 heap management: src/heap.pas (Pascal design), .spc stubs in runtime.spc (_p24p_heap_init, _p24p_new, _p24p_dispose, _p24p_leak_report), and tests/test_heap.spc. Uses .global directives for persistent allocation tracking (counters + 16-slot pointer table). Test verifies LEAK:3 -> LEAK:2 -> OK:0 lifecycle. All regression tests pass.

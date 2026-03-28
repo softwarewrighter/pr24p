@@ -1,0 +1,11 @@
+{
+  "task_type": "cor24-asm",
+  "state": {
+    "number": 2,
+    "step": "002-phase0-write-bool-ln"
+  },
+  "action": "read pvmasm.s source to understand .proc/.end semantics, two-pass assembler structure, opcode table, VM frame layout. Debugged loada returning 0 (was proc ordering issue). Debugged truncated assembly (512-byte input_buf limit). Created compact test files with short proc/label names.",
+  "result": "success",
+  "reward": 1,
+  "timestamp": "2026-03-26T10:38:35"
+}

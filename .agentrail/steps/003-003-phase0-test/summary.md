@@ -1,0 +1,1 @@
+Verified all Phase 0 runtime stubs via pvmasm VM. Expanded test_write_int.spc with boundary values (1, -1, 100, 999) in addition to existing cases (42, 0, -5, 7). test_write_bool_ln.spc already covers true/false/writeln with write_int integration. Both tests produce correct UART output within 512-byte pvmasm input limit.

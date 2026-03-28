@@ -98,14 +98,39 @@ Each routine tests the compiler feature that enables it — this is the dogfoodi
 
 These use `sys 2` (GETC) internally. The integer reader handles optional sign and digit accumulation. Written in Pascal once char type and loops are available.
 
-### Phase 2 — Heap and Dynamic Features (Pascal)
+### Phase 2 — Heap Management (Implemented)
+
+| Routine | Stack Effect | Description |
+|---------|-------------|-------------|
+| `_p24p_heap_init` | ( -- ) | Initialize allocation tracking (counters + 16-slot pointer table) |
+| `_p24p_new(size)` | ( size -- addr ) | Allocate via sys 4, track pointer |
+| `_p24p_dispose(ptr)` | ( ptr -- ) | Free via sys 5, untrack pointer |
+| `_p24p_leak_report` | ( -- ) | Print "LEAK:N" or "OK:0" |
+
+### Phase 2 — Write Formatting (Implemented)
+
+| Routine | Stack Effect | Description |
+|---------|-------------|-------------|
+| `_p24p_write_char` | ( c -- ) | Write single character to UART |
+| `_p24p_write_int_w` | ( n width -- ) | Integer right-justified in field width |
+| `_p24p_write_char_w` | ( c width -- ) | Char right-justified in field width |
+| `_p24p_write_bool_w` | ( b width -- ) | Boolean right-justified in field width |
+| `_p24p_write_str_w` | ( addr width -- ) | String right-justified in field width |
+
+**Argument convention for 2-arg routines:** `loada 0` = last pushed (width), `loada 1` = first pushed (value).
+
+### Phase 2 — I/O State (Implemented)
+
+| Routine | Stack Effect | Description |
+|---------|-------------|-------------|
+| `_p24p_eof` | ( -- flag ) | Returns 1 if at EOT (0x04), uses lookahead buffer |
+| `_p24p_eoln` | ( -- flag ) | Returns 1 if at LF or EOT, uses lookahead buffer |
+| `_p24p_subrange_check` | ( val lo hi -- ) | Prints "RANGE" and halts on violation |
+
+### Phase 2 — Sets & Strings (Planned)
 
 | Routine | Description | Compiler Features Exercised |
 |---------|-------------|---------------------------|
-| `_p24p_heap_init` | Initialize free list | pointers, records, globals |
-| `_p24p_new(size)` | Allocate heap block | pointers, records, sys ALLOC |
-| `_p24p_dispose(ptr)` | Free heap block | pointers, records, sys FREE |
-| `_p24p_leak_report` | Report unfreed allocations at exit | arrays, records, writeln |
 | `_p24p_set_union` | Set union (bit-vector OR) | arrays, bitwise ops |
 | `_p24p_set_intersect` | Set intersection (bit-vector AND) | arrays, bitwise ops |
 | `_p24p_set_diff` | Set difference | arrays, bitwise ops |
@@ -113,9 +138,6 @@ These use `sys 2` (GETC) internally. The integer reader handles optional sign an
 | `_p24p_str_compare` | String comparison | arrays, char type, loops |
 | `_p24p_str_copy` | String copy | arrays, char type |
 | `_p24p_str_concat` | String concatenation | arrays, char type, new |
-| `_p24p_subrange_check` | Subrange violation handler | procedures, writeln |
-
-The heap allocator is the flagship dogfooding target — it exercises pointers, records, arrays, and the VM's memory model simultaneously.
 
 ## VM Syscall Interface
 
