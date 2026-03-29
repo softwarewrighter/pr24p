@@ -28,7 +28,7 @@ sys 3
 ret 0
 .end
 .proc rs 0
-push 0
+sys 6
 ret 0
 .end
 .proc wi 1

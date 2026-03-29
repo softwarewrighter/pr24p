@@ -882,9 +882,10 @@ sr_fail:
 .end
 
 ; _p24p_read_switch ( -- n )
-; Read switch state. Stub returning 0 (no VM syscall yet).
+; Read switch state via sys 6 (READ_SWITCH).
+; Returns 1 = pressed, 0 = not pressed.
 .proc _p24p_read_switch 0
-    push 0               ; stub: always 0
+    sys 6                ; READ_SWITCH
     ret 0
 .end
 
