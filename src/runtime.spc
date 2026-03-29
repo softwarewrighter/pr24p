@@ -865,19 +865,18 @@ sr_fail:
 ; These support `uses Hardware` in Pascal programs.
 
 ; _p24p_led_on ( -- )
-; Turn LED on. COR24 LED is active-low (pulled up to 5V):
-; write 0 to 0xFF0000 = LED on.
+; Turn LED on. sys 3 convention: 1 = on, 0 = off.
+; (VM handles active-low inversion internally via XOR.)
 .proc _p24p_led_on 0
-    push 0               ; active-low: 0 = ON
+    push 1               ; 1 = ON
     sys 3                ; LED
     ret 0
 .end
 
 ; _p24p_led_off ( -- )
-; Turn LED off. COR24 LED is active-low:
-; write 1 to 0xFF0000 = LED off.
+; Turn LED off. sys 3 convention: 1 = on, 0 = off.
 .proc _p24p_led_off 0
-    push 1               ; active-low: 1 = OFF
+    push 0               ; 0 = OFF
     sys 3                ; LED
     ret 0
 .end

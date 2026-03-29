@@ -131,12 +131,12 @@ These use `sys 2` (GETC) internally. The integer reader handles optional sign an
 
 | Routine | Stack Effect | Description |
 |---------|-------------|-------------|
-| `_p24p_led_on` | ( -- ) | Turn LED on (writes 0, active-low) |
-| `_p24p_led_off` | ( -- ) | Turn LED off (writes 1, active-low) |
+| `_p24p_led_on` | ( -- ) | Turn LED on (sys 3 with 1; VM handles active-low) |
+| `_p24p_led_off` | ( -- ) | Turn LED off (sys 3 with 0; VM handles active-low) |
 | `_p24p_read_switch` | ( -- n ) | Read switch state (stub returning 0, no VM syscall yet) |
 | `_p24p_halt` | ( -- ) | Stop execution via sys 0 (HALT) |
 
-These support `uses Hardware` in Pascal programs. `LedOn`/`LedOff` hide the active-low hardware detail — application code never sees raw bit polarity. `read_switch` is a placeholder until the VM adds a switch-read syscall.
+These support `uses Hardware` in Pascal programs. `LedOn`/`LedOff` provide clean application-level LED control. The VM's sys 3 handler manages active-low inversion internally (1=on, 0=off at the syscall interface). `read_switch` is a placeholder until the VM adds a switch-read syscall.
 
 ### Phase 2 — Sets & Strings (Planned)
 

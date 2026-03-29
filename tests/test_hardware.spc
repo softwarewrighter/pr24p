@@ -15,15 +15,15 @@ sys 1
 call wl
 halt
 .end
-; led_on: active-low, write 0
+; led_on: sys 3 convention 1=on
 .proc lon 0
-push 0
+push 1
 sys 3
 ret 0
 .end
-; led_off: active-low, write 1
+; led_off: sys 3 convention 0=off
 .proc lof 0
-push 1
+push 0
 sys 3
 ret 0
 .end
