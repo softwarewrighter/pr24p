@@ -273,8 +273,20 @@ nc_ok:
 ; Pascal source: src/read.pas
 
 ; _p24p_read_char ( -- c )
-; Read single character from UART via sys 2 (GETC).
-.proc _p24p_read_char 0
+; Read single character. Checks lookahead buffer first.
+.proc _p24p_read_char 1
+    loadg _io_la
+    push 0
+    lt
+    jnz rc_fresh         ; lookahead empty
+    ; return lookahead char
+    loadg _io_la
+    storel 0
+    push -1
+    storeg _io_la        ; clear lookahead
+    loadl 0
+    ret 0
+rc_fresh:
     sys 2                ; GETC -> push char
     ret 0
 .end
@@ -347,6 +359,10 @@ ri_digits:
     storel 2             ; c = getc
     jmp ri_digits
 ri_negate:
+    ; Put back the non-digit terminator into lookahead buffer
+    ; so read_ln (or next read) can see it
+    loadl 2
+    storeg _io_la
     loadl 1
     jz ri_done
     loadl 0
@@ -358,18 +374,31 @@ ri_done:
 .end
 
 ; _p24p_read_ln ( -- )
-; Consume characters from UART until LF (10) is read.
+; Consume characters until LF (10) is read.
+; Checks lookahead buffer first (used by read_int putback).
 .proc _p24p_read_ln 1
+    ; check lookahead buffer
+    loadg _io_la
+    push 0
+    lt
+    jnz rl_fresh         ; lookahead empty, read fresh
+    ; consume lookahead
+    loadg _io_la
+    storel 0
+    push -1
+    storeg _io_la        ; clear lookahead
+    jmp rl_check
+rl_fresh:
     sys 2
     storel 0             ; c = getc
-rl_loop:
+rl_check:
     loadl 0
     push 10              ; LF
     eq
     jnz rl_done
     sys 2
     storel 0             ; c = getc
-    jmp rl_loop
+    jmp rl_check
 rl_done:
     ret 0
 .end
